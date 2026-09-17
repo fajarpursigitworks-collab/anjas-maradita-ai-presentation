@@ -591,7 +591,7 @@
           </div>
         </div>
         <div class="bento-card zoom-loop bd3">
-          <video src="assets/bento-tvc.mp4" poster="assets/bento-tvc-poster.jpg" autoplay muted loop playsinline></video>
+          <video src="assets/bento-tvc.mp4" poster="assets/bento-tvc-poster.jpg" muted loop playsinline preload="none"></video>
           <div class="overlay"></div>
           <div class="content">
             <div class="num">100+ TVC</div>
@@ -600,7 +600,7 @@
           </div>
         </div>
         <div class="bento-card c-tall zoom-loop bd4">
-          <video src="assets/bento-profile.mp4" autoplay muted loop playsinline></video>
+          <video src="assets/bento-profile.mp4" muted loop playsinline preload="none"></video>
           <div class="overlay"></div>
           <div class="content">
             <div class="title" style="font-size:14px; text-transform:uppercase; letter-spacing:.12em; color:var(--accent);">Profile</div>
@@ -1139,7 +1139,7 @@
     <!-- SLIDE 15 — QUOTE -->
     <section class="slide" data-slide="15">
       <div class="quote-bg">
-        <video src="assets/slide-15.mp4" autoplay muted loop playsinline></video>
+        <video src="assets/slide-15.mp4" muted loop playsinline preload="none"></video>
       </div>
       <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
       <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
@@ -1206,6 +1206,23 @@
     });
   }
 
+  function syncSlideVideos(activeSlideEl){
+    // Only the video(s) on the active slide should ever play — everything
+    // else stays paused so mobile browsers aren't decoding multiple
+    // simultaneous videos (a major cause of crashes on phones).
+    slides.forEach(s => {
+      s.querySelectorAll('video').forEach(v => {
+        if (s === activeSlideEl) {
+          if (v.preload !== 'auto') v.preload = 'auto';
+          const p = v.play();
+          if (p && p.catch) p.catch(() => {});
+        } else {
+          v.pause();
+        }
+      });
+    });
+  }
+
   function goTo(i){
     if(i < 0 || i >= slides.length) return;
     slides[current].classList.remove('active');
@@ -1215,7 +1232,10 @@
     dots[current].classList.add('active');
     counter.innerHTML = '<span class="cur">' + pad(current+1) + '</span> / ' + pad(slides.length);
     restartAnimations(slides[current]);
+    syncSlideVideos(slides[current]);
   }
+
+  syncSlideVideos(slides[0]);
 
   // parallax-zoom hover for interactive gallery photos
   document.querySelectorAll('.img-slot.interactive').forEach(el => {
