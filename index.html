@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Empowers You! — Anjas Maradita × Conextlab</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  :root{
+    --bg:#050604;
+    --card:#0c0d09;
+    --card-2:#101208;
+    --line: rgba(255,255,255,.10);
+    --line-strong: rgba(255,255,255,.18);
+    --text:#F5F6F0;
+    --text-dim: rgba(245,246,240,.62);
+    --text-faint: rgba(245,246,240,.38);
+    --accent:#44E885;
+    --accent-2:#76B900;
+    --accent-glow: rgba(68,232,133,.18);
+    --orange:#FF7A45;
+    --blue:#5B8DEF;
+    --radius: 28px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#000;overflow:hidden;}
+  body{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  #viewport{ position:fixed; inset:0; overflow:hidden; background:#000; }
+  #stage{
+    width:1920px; height:1080px;
+    position:absolute; top:50%; left:50%;
+    transform-origin:center center;
+    border-radius:40px; overflow:hidden;
+    background:url('assets/bg-slide.jpg') center/cover no-repeat, #050604;
+    box-shadow:0 60px 140px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.06);
+  }
+
+  .slide{
+    position:absolute; inset:0; width:1920px; height:1080px;
+    padding:88px 110px 70px;
+    display:flex; flex-direction:column;
+    opacity:0; pointer-events:none;
+    transition:opacity .55s ease, transform .55s ease;
+    transform:scale(.985);
+  }
+  .slide.active{ opacity:1; pointer-events:auto; transform:scale(1); }
+
+  /* Header / footer chrome — minimal, no boxed frame */
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.3; } }
+
+  .hud-footer{
+    position:absolute; left:110px; right:110px; bottom:44px; z-index:5; pointer-events:none;
+    display:flex; align-items:center; gap:10px;
+    font-size:11px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--text-faint);
+  }
+  .hud-footer .rec{ display:flex; align-items:center; gap:8px; }
+  .hud-footer .rec i{ width:5px; height:5px; border-radius:999px; background:var(--accent); box-shadow:0 0 8px var(--accent); animation:pulse 1.8s ease-in-out infinite; }
+  .hud-footer .site{ margin-left:auto; color:var(--text-faint); }
+
+  .brandtag{
+    position:absolute; top:48px; left:110px; z-index:6;
+    display:flex; align-items:center; gap:10px;
+    text-transform:uppercase; letter-spacing:.18em; font-size:12px; font-weight:700;
+    color:var(--text-dim);
+  }
+  .brandtag .dot{ width:6px; height:6px; border-radius:999px; background:var(--accent); box-shadow:0 0 10px var(--accent); animation:pulse 1.8s ease-in-out infinite; }
+  .nvidia-logo{
+    position:absolute; top:50px; right:110px; z-index:6;
+    height:20px; display:flex; align-items:center; opacity:.92;
+  }
+  .nvidia-logo img{ height:100%; width:auto; display:block; }
+
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:10px;
+    text-transform:uppercase; letter-spacing:.22em; font-size:14px; font-weight:700;
+    color:var(--accent); margin-bottom:22px;
+  }
+  .eyebrow::before{ content:''; width:22px; height:2px; background:var(--accent); }
+
+  h1{ font-size:76px; font-weight:800; line-height:1.04; letter-spacing:-.02em; margin:0 0 20px; }
+  h2{ font-size:58px; font-weight:800; line-height:1.06; letter-spacing:-.015em; margin:0 0 16px; }
+  .accent-text{ color:var(--accent); }
+  .sub{ font-size:22px; line-height:1.5; color:var(--text-dim); font-weight:500; max-width:900px; }
+
+  /* Cards */
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+  }
+  .card-title{ font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim); margin-bottom:18px; }
+
+  /* Stat tiles */
+  .stat-row{ display:flex; gap:24px; width:100%; }
+  .stat-tile{
+    flex:1; display:flex; align-items:center; gap:22px;
+    background:var(--card); border:1px solid var(--line); border-radius:24px;
+    padding:26px 30px;
+  }
+  .stat-tile .ic{
+    width:56px; height:56px; border-radius:16px; flex:none;
+    background:var(--accent-glow); border:1px solid var(--line-strong);
+    display:flex; align-items:center; justify-content:center; font-size:26px; color:var(--accent);
+  }
+  .stat-tile .num{ font-size:38px; font-weight:800; line-height:1; margin-bottom:6px; }
+  .stat-tile .lbl{ font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); margin-bottom:4px; }
+  .stat-tile .desc{ font-size:14px; color:var(--text-dim); font-weight:500; }
+  .stat-tile.pop{ transition:transform .35s cubic-bezier(.16,1,.3,1), border-color .35s ease, box-shadow .35s ease; }
+  .stat-tile.pop:hover{ transform:translateY(-6px); border-color:rgba(68,232,133,.4); box-shadow:0 22px 50px -16px rgba(68,232,133,.22); }
+
+  /* Illustrated highlight card (slide 6) */
+  .stat-tile.illustrated{ flex-direction:column; align-items:flex-start; gap:12px; position:relative; overflow:hidden; padding:30px 28px 28px; }
+  .stat-tile.illustrated .bg-ic{ position:absolute; right:-20px; bottom:-26px; font-size:150px; color:rgba(68,232,133,.06); pointer-events:none; transition:transform .5s ease, color .5s ease; }
+  .stat-tile.illustrated:hover .bg-ic{ color:rgba(68,232,133,.15); transform:scale(1.08) rotate(-4deg); }
+
+  /* Image slot with graceful placeholder */
+  .img-slot{ position:relative; overflow:hidden; border-radius:24px; border:1px solid var(--line); background:#0a0a08; }
+  .img-slot img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .img-slot .ph{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    background:repeating-linear-gradient(135deg, rgba(255,255,255,.03) 0 14px, transparent 14px 28px);
+    border:1px dashed var(--line-strong); border-radius:24px; opacity:1; transition:opacity .3s;
+  }
+  .img-slot .ph i{ font-size:34px; color:var(--text-faint); }
+  .img-slot .ph span{ font-size:12px; color:var(--text-faint); font-family:'JetBrains Mono',monospace; letter-spacing:.02em; }
+  .img-slot img[src]:not([src=""]):not(.broken) ~ .ph{ opacity:0; }
+
+  /* Interactive gallery photo (slide 4) — zoom-in entrance + hover parallax zoom */
+  .img-slot.interactive{ cursor:pointer; opacity:0; transform:scale(1.08); }
+  .slide.active .img-slot.interactive{ animation:galleryZoomIn .9s cubic-bezier(.16,1,.3,1) forwards; animation-delay:calc(var(--i,0) * .14s); }
+  @keyframes galleryZoomIn{ to{ opacity:1; transform:scale(1); } }
+  .img-slot.interactive img{ transition:transform .5s cubic-bezier(.16,1,.3,1); will-change:transform; }
+
+  /* Flow steps */
+  .flow-row{ display:flex; align-items:stretch; gap:0; width:100%; }
+  .flow-step{ flex:1; display:flex; flex-direction:column; align-items:center; text-align:center; padding:0 14px; }
+  .flow-step .ic{
+    width:76px; height:76px; border-radius:20px; background:var(--card-2); border:1px solid var(--line-strong);
+    display:flex; align-items:center; justify-content:center; font-size:32px; color:var(--accent); margin-bottom:16px;
+  }
+  .flow-step h4{ font-size:19px; font-weight:800; margin:0 0 8px; }
+  .flow-step p{ font-size:14px; color:var(--text-dim); line-height:1.45; margin:0; font-weight:500; }
+  .flow-arrow{ flex:none; display:flex; align-items:center; padding-top:38px; color:var(--text-faint); font-size:22px; }
+
+  /* Mini flow (vertical, used in demo slide) */
+  .mflow{ display:flex; flex-direction:column; gap:0; }
+  .mflow-step{ display:flex; align-items:center; gap:14px; padding:12px 16px; background:var(--card-2); border:1px solid var(--line); border-radius:14px; }
+  .mflow-step .n{ width:26px; height:26px; border-radius:999px; background:var(--accent-glow); color:var(--accent); font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex:none; }
+  .mflow-step .t{ font-size:14.5px; font-weight:700; }
+  .mflow-step .t small{ display:block; font-size:11.5px; font-weight:500; color:var(--text-dim); }
+  .mflow-arrow{ height:16px; margin-left:29px; border-left:1px dashed var(--line-strong); }
+
+  /* Terminal */
+  .terminal{ background:#08090a; border:1px solid var(--line-strong); border-radius:18px; padding:18px 20px; }
+  .terminal .bar{ display:flex; gap:6px; margin-bottom:12px; }
+  .terminal .bar span{ width:9px; height:9px; border-radius:999px; background:var(--line-strong); }
+  .terminal pre{ margin:0; font-size:13.5px; line-height:1.7; color:var(--accent); font-family:'JetBrains Mono',monospace; white-space:pre-wrap; }
+  .terminal pre .w{ color:var(--text-dim); }
+
+  /* Bars chart */
+  .barchart{ display:flex; align-items:flex-end; gap:10px; height:180px; }
+  .barchart .bar{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+  .barchart .bar .fill{ width:100%; border-radius:6px 6px 0 0; }
+  .barchart .bar .v{ font-size:12px; font-weight:700; color:var(--text-dim); margin-bottom:6px; }
+  .barchart .bar .x{ font-size:11px; color:var(--text-faint); margin-top:8px; font-weight:600; }
+
+  .pill{ display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:999px; border:1px solid var(--line-strong); font-size:13px; font-weight:700; color:var(--text-dim); }
+  .legend{ display:flex; gap:18px; align-items:center; margin-top:10px; }
+  .legend .sw{ display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:600; color:var(--text-dim); }
+  .legend .sw i{ width:10px; height:10px; border-radius:3px; display:inline-block; }
+
+  /* Word / block reveal animation */
+  .rw{ display:inline-block; opacity:0; transform:translateY(36px); filter:blur(6px); }
+  .slide.active .rw{ animation:wordIn .75s cubic-bezier(.16,1,.3,1) forwards; animation-delay:calc(var(--i,0) * .12s); }
+  @keyframes wordIn{ to{ opacity:1; transform:translateY(0); filter:blur(0); } }
+  .cover-h1{ font-weight:800; line-height:1.03; letter-spacing:-.02em; margin:0; }
+
+  /* Fan-of-photos cluster (cover slide) */
+  .fan-wrap{ position:relative; width:660px; height:510px; flex:none; }
+  .fan-card{ position:absolute; width:300px; height:392px; opacity:0; transform:translateY(46px) scale(.85); animation:fanIn .85s cubic-bezier(.16,1,.3,1) forwards; }
+  .fan-card.f1{ left:0; top:88px; --r:-9deg; z-index:1; animation-delay:1.3s; }
+  .fan-card.f2{ left:178px; top:0; --r:3deg; z-index:3; animation-delay:1.48s; }
+  .fan-card.f3{ left:356px; top:101px; --r:12deg; z-index:2; animation-delay:1.66s; }
+
+  /* Scattered sticker chips over the cover fan photos */
+  .sticker-tag{ position:absolute; z-index:45; opacity:0; transform:scale(.6); animation:stickerPop .6s cubic-bezier(.16,1,.3,1) forwards; }
+  @keyframes stickerPop{ to{ opacity:1; transform:scale(1); } }
+  .sticker-tag .chip{ display:flex; align-items:center; gap:8px; padding:11px 20px; border-radius:999px; font-weight:800; font-size:14.5px; white-space:nowrap; box-shadow:0 18px 40px rgba(0,0,0,.5); }
+  .sticker-tag.st1{ top:-24px; left:-26px; animation-delay:2.1s; }
+  .sticker-tag.st1 .chip{ background:var(--accent); color:#04140c; transform:rotate(-9deg); animation:stickerBob1 5s ease-in-out 2.7s infinite; }
+  @keyframes stickerBob1{ 0%,100%{ transform:rotate(-9deg) translateY(0); } 50%{ transform:rotate(-5deg) translateY(-8px); } }
+  .sticker-tag.st2{ top:44%; right:-58px; animation-delay:2.3s; }
+  .sticker-tag.st2 .chip{ background:var(--blue); color:#fff; transform:rotate(7deg); animation:stickerBob2 4.6s ease-in-out 2.9s infinite; }
+  @keyframes stickerBob2{ 0%,100%{ transform:rotate(7deg) translateY(0); } 50%{ transform:rotate(11deg) translateY(-9px); } }
+  .sticker-tag.st3{ bottom:-16px; left:150px; animation-delay:2.5s; }
+  .sticker-tag.st3 .chip{ background:var(--orange); color:#1a0d02; transform:rotate(-6deg); animation:stickerBob3 5.3s ease-in-out 3.1s infinite; }
+  @keyframes stickerBob3{ 0%,100%{ transform:rotate(-6deg) translateY(0); } 50%{ transform:rotate(-2deg) translateY(-7px); } }
+  @keyframes fanIn{ to{ opacity:1; transform:translateY(0) scale(1); } }
+  .fan-card .float{ width:100%; height:100%; animation:fanFloat 4.6s ease-in-out infinite; animation-delay:2.1s; }
+  .fan-card.f2 .float{ animation-delay:2.5s; }
+  .fan-card.f3 .float{ animation-delay:2.9s; }
+  @keyframes fanFloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-13px); } }
+  .fan-card .inner{
+    width:100%; height:100%; border-radius:24px; overflow:hidden; position:relative;
+    border:2px solid var(--line-strong); background:#0a0a08; box-shadow:0 26px 55px rgba(0,0,0,.55);
+    transform:rotate(var(--r,0deg)); cursor:pointer;
+    transition:transform .45s cubic-bezier(.16,1,.3,1), box-shadow .45s ease, border-color .45s ease;
+  }
+  .fan-card .inner img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .fan-card .inner .ph{ border-radius:22px; }
+  .fan-card:hover{ z-index:50; }
+  .fan-card:hover .inner{
+    transform:translateY(-38px) scale(1.1) rotate(0deg);
+    box-shadow:0 46px 90px rgba(0,0,0,.65), 0 0 55px var(--accent-glow);
+    border-color:var(--accent);
+  }
+
+  /* Circular sticker badges */
+  .sticker{ width:168px; height:168px; border-radius:50%; border:2px dashed var(--accent); background:var(--card); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; flex:none; }
+  .sticker i{ font-size:34px; color:var(--accent); }
+  .sticker span{ font-size:14px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
+  .sticker.s1{ transform:rotate(-5deg); }
+  .sticker.s2{ transform:translateY(-20px) rotate(4deg); }
+  .sticker.s3{ transform:translateY(12px) rotate(-3deg); }
+
+  /* Circular looping "Tools · Mindset · Growth" badge (slide 2) */
+  .tools-badge{
+    position:absolute; top:-2%; right:-100px;
+    width:200px; height:200px; border-radius:50%; z-index:30;
+    background:var(--accent); display:flex; align-items:center; justify-content:center;
+    box-shadow:0 24px 60px rgba(0,0,0,.5), 0 0 50px var(--accent-glow);
+  }
+  .tools-badge svg{ position:absolute; inset:0; width:100%; height:100%; animation:badgeSpin 16s linear infinite; }
+  .tools-badge svg text{ fill:#04140c; font-family:'JetBrains Mono', monospace; }
+  .tools-badge i{ font-size:34px; color:#04140c; }
+  @keyframes badgeSpin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+
+  /* Slow continuous Ken-Burns zoom (slide 2 photo) */
+  .img-slot.kenburns img, .img-slot.kenburns .ph{ animation:kenBurns 9s ease-in-out infinite alternate; }
+  @keyframes kenBurns{ from{ transform:scale(1); } to{ transform:scale(1.14); } }
+  .zoom-loop img, .zoom-loop video, .zoom-loop .ph{ animation:kenBurns 9s ease-in-out infinite alternate; will-change:transform; }
+  .zoom-loop:hover img, .zoom-loop:hover video{ animation-play-state:paused; }
+
+  /* Bento portfolio grid (slide 3) */
+  .bento-grid{ flex:1; min-height:0; display:grid; grid-template-columns:repeat(5,1fr); grid-template-rows:repeat(2,1fr); grid-auto-rows:1fr; gap:18px; grid-auto-flow:dense; }
+  .bento-card{
+    position:relative; border-radius:24px; overflow:hidden;
+    background:linear-gradient(to bottom right,#05140a,#010502);
+    border:1px solid var(--line); padding:26px 30px; display:flex; flex-direction:column; justify-content:flex-end;
+    transition:border-color .4s ease, box-shadow .4s ease;
+  }
+  .bento-card:hover{ border-color:rgba(68,232,133,.35); box-shadow:inset 0 0 40px rgba(68,232,133,.08); }
+  .bento-card img, .bento-card video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+  .bento-card .ph{ position:absolute; inset:0; z-index:0; border-radius:0; }
+  .bento-card .overlay{ position:absolute; inset:0; z-index:1; background:linear-gradient(to top, #000 0%, rgba(0,0,0,.78) 35%, rgba(0,0,0,.18) 70%, transparent 100%); }
+  .bento-card .content{ position:relative; z-index:2; }
+  .bento-card .num{ font-size:36px; font-weight:800; color:var(--accent); line-height:1; margin-bottom:8px; }
+  .bento-card .title{ font-weight:800; font-size:18px; }
+  .bento-card .desc{ font-size:13px; color:var(--text-dim); font-weight:600; margin-top:4px; }
+  .bento-card.c-2{ grid-column:span 2; }
+  .bento-card.c-tall{ grid-row:span 2; }
+  .bento-card{ opacity:0; transform:translateY(28px); }
+  .slide.active .bento-card{ animation:biFadeUp .75s cubic-bezier(.16,1,.3,1) forwards; }
+  .bento-card.bd1{ animation-delay:.06s; } .bento-card.bd2{ animation-delay:.14s; } .bento-card.bd3{ animation-delay:.22s; }
+  .bento-card.bd4{ animation-delay:.3s; } .bento-card.bd5{ animation-delay:.38s; } .bento-card.bd6{ animation-delay:.46s; }
+  .bento-card.bd7{ animation-delay:.54s; }
+
+  /* Glass "bento" card style + staggered fade-up (slide 7, from client reference) */
+  .bi-card{
+    position:relative; overflow:hidden;
+    background:rgba(16,18,10,.55); backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,.06);
+    opacity:0; transform:translateY(24px);
+    transition:border-color .4s ease, box-shadow .4s ease, transform .4s ease;
+  }
+  .slide.active .bi-card{ animation:biFadeUp .8s cubic-bezier(.16,1,.3,1) forwards; }
+  .bi-card.d1{ animation-delay:.1s; }
+  .bi-card.d2{ animation-delay:.22s; }
+  .bi-card.d3{ animation-delay:.34s; }
+  .bi-card:hover{ border-color:rgba(68,232,133,.32); box-shadow:0 14px 44px -12px rgba(68,232,133,.18); }
+
+  /* Slide 5 answer cards — staggered fade-up */
+  .ans-num{ width:56px; height:56px; border-radius:16px; font-weight:800; font-size:22px; display:flex; align-items:center; justify-content:center; flex:none; }
+  .ans-text{ margin:0; font-size:21px; font-weight:700; line-height:1.4; }
+  .ans-card{ opacity:0; transform:translateY(26px); }
+  .slide.active .ans-card{ animation:biFadeUp .75s cubic-bezier(.16,1,.3,1) forwards; }
+  .ans-card.d1{ animation-delay:.08s; } .ans-card.d2{ animation-delay:.2s; } .ans-card.d3{ animation-delay:.32s; }
+  .ans-card.d4{ animation-delay:.44s; } .ans-card.d5{ animation-delay:.56s; }
+  @keyframes biFadeUp{ to{ opacity:1; transform:translateY(0); } }
+
+  /* Architecture flow (slide 8, ported from client's Gemini reference) */
+  .arch-grid{ flex:1; min-height:0; display:grid; grid-template-columns:repeat(5,1fr); gap:20px; align-items:stretch; align-content:stretch; }
+  .arch-col{ display:flex; flex-direction:column; opacity:0; transform:translateY(22px); }
+  .slide.active .arch-col{ animation:archFade .8s cubic-bezier(.16,1,.3,1) forwards; }
+  .arch-col.d1{ animation-delay:.08s; } .arch-col.d2{ animation-delay:.18s; } .arch-col.d3{ animation-delay:.28s; }
+  .arch-col.d4{ animation-delay:.38s; } .arch-col.d5{ animation-delay:.48s; }
+  @keyframes archFade{ to{ opacity:1; transform:translateY(0); } }
+  .arch-icon{ width:44px; height:44px; border-radius:13px; border:1px solid var(--line-strong); background:var(--card); display:flex; align-items:center; justify-content:center; margin-bottom:10px; color:var(--text-dim); font-size:19px; transition:border-color .25s ease, color .25s ease; }
+  .arch-col:hover .arch-icon{ border-color:var(--accent); color:var(--accent); }
+  .arch-col h4{ font-size:14.5px; font-weight:700; margin:0 0 5px; color:var(--text); }
+  .arch-col .arch-desc{ font-size:14.5px; color:var(--text-dim); font-weight:600; line-height:1.48; margin:0 0 16px; min-height:56px; }
+  .arch-card{ min-height:280px; flex:1; background:var(--card); border:1px solid var(--line); border-radius:20px; padding:18px; position:relative; overflow:visible; display:flex; flex-direction:column; transition:border-color .3s ease, box-shadow .3s ease; }
+  .arch-card .arch-next{ position:absolute; top:50%; right:-30px; transform:translateY(-50%); width:26px; height:26px; border-radius:50%; background:var(--bg); border:1px solid var(--line-strong); color:var(--accent); font-size:12px; display:flex; align-items:center; justify-content:center; z-index:5; }
+  .arch-col:hover .arch-card{ border-color:rgba(68,232,133,.4); box-shadow:0 24px 55px -16px rgba(68,232,133,.2); }
+  .arch-card .lbl{ font-size:12.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); text-align:center; margin-bottom:10px; }
+
+  /* mini web-app mock */
+  .mock-browser{ flex:1; background:#000; border:1px solid var(--line); border-radius:10px; padding:8px; display:flex; flex-direction:column; gap:6px; }
+  .mock-browser .dots{ display:flex; gap:4px; }
+  .mock-browser .dots span{ width:6px; height:6px; border-radius:50%; }
+  .mock-browser .dots span:nth-child(1){ background:#ff6b5e; } .mock-browser .dots span:nth-child(2){ background:#ffc02e; } .mock-browser .dots span:nth-child(3){ background:#39d353; }
+  .mock-browser .body{ display:flex; gap:6px; flex:1; }
+  .mock-browser .side{ width:26%; background:rgba(255,255,255,.05); border-radius:6px; padding:6px; display:flex; flex-direction:column; gap:5px; }
+  .mock-browser .side i{ display:block; height:5px; border-radius:3px; background:rgba(255,255,255,.15); }
+  .mock-browser .main{ flex:1; display:flex; flex-direction:column; gap:6px; }
+  .mock-browser .chart-area{ height:34px; background:rgba(255,255,255,.05); border-radius:6px; overflow:hidden; }
+  .mock-browser .widgets{ flex:1; display:flex; gap:6px; }
+  .mock-browser .widget{ flex:1; background:rgba(255,255,255,.05); border-radius:6px; display:flex; align-items:flex-end; justify-content:center; gap:3px; padding:5px; position:relative; }
+  .mock-browser .widget .b{ width:5px; border-radius:2px; background:var(--accent); }
+  .mock-browser .spin-ring{ width:16px; height:16px; border-radius:50%; border:2px solid rgba(255,255,255,.12); border-top-color:var(--accent); animation:archSpin 2.4s linear infinite; margin:auto; }
+  @keyframes archSpin{ to{ transform:rotate(360deg); } }
+  @keyframes archBar1{ 0%,100%{ height:30%; } 50%{ height:85%; } }
+  @keyframes archBar2{ 0%,100%{ height:60%; } 50%{ height:100%; } }
+  @keyframes archBar3{ 0%,100%{ height:40%; } 50%{ height:70%; } }
+  .mock-browser .b1{ animation:archBar1 2s ease-in-out infinite; }
+  .mock-browser .b2{ animation:archBar2 2.5s ease-in-out infinite; }
+  .mock-browser .b3{ animation:archBar3 1.8s ease-in-out infinite; }
+
+  /* mini workflow diagram mock */
+  .mock-flow{ flex:1; position:relative; background:radial-gradient(rgba(255,255,255,.09) 1px, transparent 1px) 0 0/12px 12px; border-radius:10px; }
+  .mock-node{ position:absolute; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .mock-node .box{ width:34px; height:34px; border-radius:9px; border:1px solid var(--line-strong); background:#000; display:flex; align-items:center; justify-content:center; font-size:15px; color:var(--accent); position:relative; }
+  .mock-node .box::before{ content:''; position:absolute; inset:0; border-radius:inherit; border:1.5px solid var(--accent); animation:ringPulse 2.2s cubic-bezier(.22,.61,.36,1) infinite; }
+  .mock-node span{ font-size:8.5px; color:var(--text-faint); font-weight:600; }
+  @keyframes ringPulse{ 0%{ transform:scale(.85); opacity:.8; } 100%{ transform:scale(1.9); opacity:0; } }
+  .mock-flow .n1{ top:14%; left:10%; } .mock-flow .n2{ top:14%; right:14%; } .mock-flow .n3{ bottom:18%; left:38%; animation:archFloat 4s ease-in-out infinite; }
+  @keyframes archFloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-5px); } }
+  .mock-flow svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .mock-flow .flow-dash{ stroke-dasharray:4 4; animation:dashFlow 1s linear infinite; }
+  @keyframes dashFlow{ to{ stroke-dashoffset:-16; } }
+  .mock-flow-logos{ position:absolute; bottom:8px; left:0; right:0; display:flex; justify-content:center; gap:14px; font-size:10.5px; color:var(--text-faint); font-weight:600; }
+  .mock-flow-logos span{ display:flex; align-items:center; gap:4px; }
+  .mock-flow-logos i{ width:6px; height:6px; border-radius:50%; display:inline-block; }
+
+  /* mini ollama request/response mock */
+  .mock-ollama{ flex:1; display:flex; align-items:center; justify-content:center; position:relative; }
+  .mock-ollama .rq, .mock-ollama .rs{ position:absolute; font-size:11.5px; color:var(--text-dim); font-weight:700; display:flex; align-items:center; gap:4px; }
+  .mock-ollama .rq{ left:0; animation:ollamaPulseR 2.6s ease-in-out infinite; }
+  .mock-ollama .rs{ right:0; animation:ollamaPulseL 2.6s ease-in-out infinite 1.3s; }
+  @keyframes ollamaPulseR{ 0%,100%{ opacity:.3; transform:translateX(0); } 50%{ opacity:1; transform:translateX(5px); } }
+  @keyframes ollamaPulseL{ 0%,100%{ opacity:.3; transform:translateX(0); } 50%{ opacity:1; transform:translateX(-5px); } }
+  .mock-ollama .logo{ width:52px; height:52px; border-radius:16px; background:#fff; border:3px solid #000; display:flex; align-items:center; justify-content:center; animation:archFloat 4s ease-in-out infinite, ollamaGlow 2.6s ease-in-out infinite; }
+  @keyframes ollamaGlow{ 0%,100%{ box-shadow:0 0 0 rgba(68,232,133,0); } 50%{ box-shadow:0 0 24px rgba(68,232,133,.5); } }
+  .mock-ollama .logo i{ font-size:24px; color:#04140c; }
+
+  /* mini terminal mock */
+  .mock-term{ background:#000; border:1px solid var(--line); border-radius:10px; padding:12px; font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text-dim); }
+  .mock-term .cur{ display:inline-block; width:5px; height:11px; background:var(--accent); margin-left:3px; animation:pulse 1s step-end infinite; vertical-align:middle; }
+  .mock-term .bar-wrap{ width:100%; height:5px; background:rgba(255,255,255,.1); border-radius:99px; margin-top:10px; overflow:hidden; position:relative; }
+  .mock-term .bar-wrap .fill{ position:absolute; inset:0; background:linear-gradient(90deg, transparent, var(--accent), transparent); animation:archLoad 1.6s linear infinite; }
+  @keyframes archLoad{ from{ transform:translateX(-100%); } to{ transform:translateX(100%); } }
+
+  /* mini GPU mock */
+  .mock-gpu{ height:64px; background:linear-gradient(90deg,#111,#1c1c1c); border:1px solid var(--line); border-radius:10px; display:flex; align-items:center; padding:0 12px; gap:10px; position:relative; overflow:hidden; }
+  .mock-gpu .fan{ width:38px; height:38px; border-radius:50%; border:3px solid #2c2c2c; display:flex; align-items:center; justify-content:center; position:absolute; right:8px; }
+  .mock-gpu .fan .ring{ width:28px; height:28px; border-radius:50%; border:2px dashed var(--accent-2); animation:archSpin 4s linear infinite; }
+  .mock-gpu .fan .dot{ position:absolute; width:6px; height:6px; border-radius:50%; background:var(--accent-2); box-shadow:0 0 10px var(--accent-2); }
+  .mock-gpu .wordmark{ font-weight:800; font-size:13px; letter-spacing:.03em; display:flex; align-items:center; gap:6px; }
+  .mock-gpu .wordmark i{ width:9px; height:9px; background:var(--accent-2); border-radius:2px; transform:skewX(-12deg); display:inline-block; }
+
+  .arch-check{ font-size:14px; color:var(--text-dim); font-weight:600; display:flex; flex-direction:column; gap:9px; margin-top:14px; }
+  .arch-check span{ display:flex; align-items:center; gap:8px; }
+
+  /* connecting pill bar */
+  .arch-pill-bar{ margin-top:20px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; }
+  .arch-pill-bar .chip{ border-radius:999px; background:rgba(12,13,9,.85); border:1px solid var(--line); backdrop-filter:blur(6px); padding:16px 28px; font-size:19px; font-weight:700; color:var(--text); }
+  .arch-pill-bar .chip.accent-text{ border-color:rgba(68,232,133,.4); background:var(--accent-glow); }
+  .arch-pill-bar i{ color:var(--accent); font-size:20px; }
+
+  /* Slide 9 — Demo Time interactive mocks (ported from client's Gemini reference) */
+  .demo-card{ flex:1; background:var(--card); border:1px solid var(--line); border-radius:26px; padding:28px; display:flex; flex-direction:column; gap:18px; transition:border-color .4s ease, box-shadow .4s ease; }
+  .demo-card:hover{ border-color:rgba(68,232,133,.4); box-shadow:0 24px 60px -20px rgba(68,232,133,.2); }
+  .demo-card h3{ font-size:23px; font-weight:800; line-height:1.2; margin:0; }
+  .demo-mock{ flex:1; background:#050604; border:1px solid var(--line); border-radius:18px; position:relative; overflow:hidden; }
+  .demo-mock svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .demo-mock .flow-dash{ stroke-dasharray:4 4; animation:dashFlow 1s linear infinite; }
+  .demo-node{ position:absolute; background:#111; border:1px solid rgba(255,255,255,.1); border-radius:8px; padding:7px 9px; z-index:2; }
+  .demo-node.hl{ border-color:rgba(68,232,133,.5); box-shadow:0 0 14px rgba(68,232,133,.15); }
+  .demo-node.pulse{ animation:pulseBorder 2s infinite; }
+  .demo-node .t{ font-size:9.5px; color:#fff; font-weight:600; display:flex; align-items:center; gap:5px; white-space:nowrap; }
+  .demo-node .t i{ color:var(--accent); }
+  .demo-node .d{ font-size:8px; color:var(--text-faint); margin-top:3px; }
+  @keyframes pulseBorder{ 0%,100%{ border-color:rgba(255,255,255,.1); box-shadow:none; } 50%{ border-color:rgba(68,232,133,.5); box-shadow:0 0 10px rgba(68,232,133,.2); } }
+
+  /* card 2 — media gen preview scanning */
+  .demo-scan{ position:relative; overflow:hidden; border-radius:6px; }
+  .demo-scan::after{ content:''; position:absolute; top:0; left:0; right:0; height:35%; background:linear-gradient(to bottom, transparent, rgba(68,232,133,.45), transparent); animation:demoScan 2s linear infinite; }
+  @keyframes demoScan{ from{ transform:translateY(-120%); } to{ transform:translateY(320%); } }
+
+  /* card 3 — terminal + logo */
+  .demo-term-wrap{ flex:1; display:flex; flex-direction:column; border-radius:18px; overflow:hidden; border:1px solid var(--line); }
+  .demo-term-side{ flex:1.35; width:100%; padding:20px; font-family:'JetBrains Mono',monospace; display:flex; flex-direction:column; gap:6px; justify-content:center; border-right:none; border-bottom:1px solid var(--line); background:#050604; }
+  .demo-term-side .line-dim{ opacity:0; animation:demoTypeIn .3s forwards; color:var(--text-faint); font-size:12px; }
+  .demo-logo-side{ flex:1; width:100%; background:#020302; display:flex; align-items:center; justify-content:center; position:relative; }
+  .demo-logo-side::before{ content:''; position:absolute; inset:0; background:radial-gradient(circle at center, rgba(68,232,133,.14) 0%, transparent 70%); }
+  .demo-logo-badge{ width:64px; height:64px; border-radius:20px; background:var(--accent-glow); border:1px solid rgba(68,232,133,.4); display:flex; align-items:center; justify-content:center; box-shadow:0 0 24px rgba(68,232,133,.25); position:relative; z-index:1; animation:archFloat 3.4s ease-in-out infinite; }
+  @keyframes demoTypeIn{ to{ opacity:1; } }
+
+  /* Full-bleed photo slides (10, 11, 12) */
+  .full-bleed{ position:absolute; inset:-88px -110px -70px -110px; z-index:0; overflow:hidden; }
+  .full-bleed img{ width:100%; height:100%; object-fit:cover; display:block; animation:kenBurns 16s ease-in-out infinite alternate; }
+  .full-bleed .fade-top{ position:absolute; inset:0; background:linear-gradient(to top, rgba(3,4,2,.88) 0%, rgba(3,4,2,.4) 30%, transparent 58%); }
+  .full-bleed-caption{ position:absolute; z-index:3; left:110px; bottom:90px; max-width:1050px; }
+  .full-bleed-caption h2{ font-size:52px; font-weight:800; margin:0; max-width:1050px; line-height:1.08; }
+  .floating-photo{ position:absolute; z-index:4; left:110px; bottom:100px; width:300px; height:210px; border-radius:20px; overflow:hidden; border:3px solid var(--bg); box-shadow:0 30px 60px rgba(0,0,0,.6); transform:rotate(-4deg); }
+  .floating-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .slide.active .floating-photo{ animation:floatPhotoIn .8s cubic-bezier(.16,1,.3,1) .5s both, archFloat 4.5s ease-in-out 1.4s infinite; }
+  @keyframes floatPhotoIn{ from{ opacity:0; transform:rotate(-4deg) translateY(40px) scale(.9); } to{ opacity:1; transform:rotate(-4deg) translateY(0) scale(1); } }
+
+  /* Screenshot frame (slide 13) — plain thin outline, even sizing */
+  .phone-frame{ width:400px; height:auto; border-radius:20px; background:#0a0a08; border:1.5px solid rgba(255,255,255,.4); padding:6px; box-shadow:0 24px 60px rgba(0,0,0,.55); position:relative; flex:1; }
+  .phone-frame .screen{ width:100%; border-radius:14px; overflow:hidden; background:#0a0a08; display:flex; align-items:center; justify-content:center; }
+  .phone-frame .screen img{ width:100%; height:auto; display:block; }
+  .phone-stack{ display:flex; align-items:stretch; justify-content:center; gap:34px; flex:1; }
+
+  /* Slide 14 — IG cards */
+  .ig-card{ border-radius:26px; overflow:hidden; position:relative; border:3px solid transparent; background:linear-gradient(var(--card),var(--card)) padding-box, linear-gradient(135deg,#feda75,#d62976,#4f5bd5) border-box; }
+  .ig-card img{ width:100%; height:auto; max-height:100%; object-fit:contain; display:block; margin:0 auto; }
+  .ig-overlay-text{ position:absolute; top:34px; left:34px; right:34px; z-index:2; font-size:15.5px; font-weight:700; line-height:1.55; color:#fff; text-shadow:0 2px 14px rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.6); white-space:pre-line; }
+  .ig-free-badge{ position:absolute; top:22px; left:50%; z-index:2; background:var(--accent); color:#04140c; font-weight:800; font-size:15px; padding:10px 24px; border-radius:999px; box-shadow:0 14px 34px rgba(68,232,133,.45); animation:freeBadgeLoop 2.4s ease-in-out infinite; white-space:nowrap; }
+  @keyframes freeBadgeLoop{ 0%,100%{ transform:translateX(-50%) scale(1); } 50%{ transform:translateX(-50%) scale(1.08); } }
+  .ig-cta{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; font-size:22px; font-weight:700; color:var(--text); }
+  .ig-cta i{ font-size:30px; color:#fff; }
+  .ig-cta .tag{ color:var(--accent); }
+  .ig-cta .kw{ padding:5px 14px; border-radius:999px; background:var(--accent-glow); color:var(--accent); font-weight:800; }
+
+  /* Quote / closing slides (15, 16) */
+  .quote-bg{ position:absolute; inset:-88px -110px -70px -110px; z-index:0; overflow:hidden; }
+  .quote-bg video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.55); }
+  .quote-slide{ position:relative; z-index:2; flex:1; display:flex; align-items:center; justify-content:center; text-align:center; }
+  .quote-slide blockquote{ margin:0; max-width:1300px; font-size:50px; font-weight:700; line-height:1.35; color:var(--text); }
+  .quote-slide blockquote::before{ content:'“'; color:var(--accent); }
+  .quote-slide blockquote::after{ content:'”'; color:var(--accent); }
+  .thankyou-slide{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:20px; }
+  .thankyou-slide h1{ font-size:130px; margin:0; }
+
+  /* Nav controls — simple rounded squares with a subtle "swipe me" loop (fixed to real viewport, not scaled) */
+  #nav{ position:fixed; left:0; right:0; bottom:30px; display:flex; align-items:center; justify-content:center; gap:14px; z-index:50; font-family:'JetBrains Mono', monospace; }
+  #nav button{
+    width:48px; height:48px; border-radius:16px; border:1px solid var(--line-strong);
+    background:rgba(8,9,7,.78); backdrop-filter:blur(6px); color:var(--text); font-size:17px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:background .2s ease, border-color .2s ease, color .2s ease;
+    overflow:hidden;
+  }
+  #nav button i{ animation:navHint 2.4s ease-in-out infinite; }
+  #prevBtn i{ animation-direction:reverse; }
+  @keyframes navHint{ 0%,100%{ transform:translateX(0); opacity:.85; } 50%{ transform:translateX(4px); opacity:1; } }
+  #nav button:hover{ background:var(--accent); color:#04140c; border-color:var(--accent); }
+  #nav button:hover i{ animation-play-state:paused; }
+  #dots{ display:flex; align-items:flex-end; gap:5px; padding:0 16px; height:20px; }
+  #dots .d{ width:4px; height:9px; border-radius:3px; background:rgba(255,255,255,.22); cursor:pointer; transition:.25s; }
+  #dots .d.active{ height:20px; background:var(--accent); box-shadow:0 0 10px var(--accent); }
+  #counter{ font-size:12px; letter-spacing:.14em; color:var(--text-dim); min-width:78px; text-align:center; border:1px solid var(--line-strong); border-radius:14px; padding:11px 14px; background:rgba(8,9,7,.78); }
+  #counter .cur{ color:var(--accent); font-weight:700; }
+</style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="stage">
+
+    <div class="hud-footer">
+      <span class="rec"><i></i> Live Session</span>
+      <span class="site">conextlab.ai</span>
+    </div>
+
+    <!-- SLIDE 1 — COVER -->
+    <section class="slide active" data-slide="1">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:130px;">
+        <div class="fan-wrap">
+          <div class="fan-card f1">
+            <div class="float"><div class="inner">
+              <img src="assets/anjas-01.jpg" alt="Anjas Maradita" onerror="this.classList.add('broken')">
+              <div class="ph"><i class="ph ph-user-focus"></i></div>
+            </div></div>
+          </div>
+          <div class="fan-card f2">
+            <div class="float"><div class="inner">
+              <img src="assets/anjas-portrait.jpg" alt="Anjas Maradita" onerror="this.classList.add('broken')">
+              <div class="ph"><i class="ph ph-user-square"></i></div>
+            </div></div>
+          </div>
+          <div class="fan-card f3">
+            <div class="float"><div class="inner">
+              <img src="assets/anjas-02.jpg" alt="Anjas Maradita" onerror="this.classList.add('broken')">
+              <div class="ph"><i class="ph ph-image"></i></div>
+            </div></div>
+          </div>
+          <div class="sticker-tag st1"><div class="chip"><i class="ph ph-cpu"></i> Agentic AI</div></div>
+          <div class="sticker-tag st2"><div class="chip"><i class="ph ph-lightning"></i> Local LLM</div></div>
+          <div class="sticker-tag st3"><div class="chip"><i class="ph ph-graphics-card"></i> NVIDIA GPU</div></div>
+        </div>
+        <div style="max-width:740px;">
+          <div class="eyebrow rw" style="--i:0">NVIDIA RTX Presentation</div>
+          <h1 class="cover-h1" style="font-size:112px;">
+            <span class="rw" style="--i:1">AI</span><br>
+            <span class="rw accent-text" style="--i:2">Empowers</span><br>
+            <span class="rw" style="--i:3">You!</span>
+          </h1>
+          <p class="sub rw" style="--i:4; font-size:18px; margin:28px 0 0; text-transform:uppercase; letter-spacing:.16em; font-weight:700; color:var(--text-dim);">By Anjas Maradita, Founder, Conextlab.ai</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2 — HOW TO IMPLEMENT AI -->
+    <section class="slide" data-slide="2">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <div style="flex:1; display:flex; align-items:stretch; gap:70px;">
+        <div style="position:relative; flex:0 0 44%;">
+          <div class="img-slot kenburns" style="margin:-88px 0 -70px -110px; height:calc(100% + 158px); border-radius:0;">
+            <img src="assets/anjas-implement.jpg" alt="Anjas Maradita" onerror="this.classList.add('broken')">
+            <div class="ph"><i class="ph ph-user-focus"></i><span>assets/anjas-implement.jpg</span></div>
+          </div>
+          <div class="tools-badge">
+            <svg viewBox="0 0 200 200">
+              <defs><path id="toolsCirclePath" d="M 100,100 m -76,0 a 76,76 0 1,1 152,0 a 76,76 0 1,1 -152,0"/></defs>
+              <text font-size="14" font-weight="800">
+                <textPath href="#toolsCirclePath" xlink:href="#toolsCirclePath" startOffset="0%" textLength="477" lengthAdjust="spacingAndGlyphs">TOOLS • MINDSET • GROWTH • TOOLS • MINDSET • GROWTH • </textPath>
+              </text>
+            </svg>
+            <i class="ph-fill ph-sparkle"></i>
+          </div>
+        </div>
+        <div style="flex:1.05; display:flex; align-items:center;">
+          <div>
+            <div class="eyebrow rw" style="--i:0">How To Implement AI</div>
+            <h2 class="cover-h1" style="font-size:68px; max-width:820px;">
+              <span class="rw" style="--i:1">No</span> <span class="rw" style="--i:2">cheating.</span><br>
+              <span class="rw" style="--i:3">It's</span> <span class="rw" style="--i:4">about</span><br>
+              <span class="rw accent-text" style="--i:5">empowering</span><br>
+              <span class="rw" style="--i:6">you.</span>
+            </h2>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3 — PORTFOLIO -->
+    <section class="slide" data-slide="3">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <div style="display:flex; gap:12px; margin-bottom:26px;">
+        <div class="pill rw" style="--i:0">Conextlab Tech</div>
+        <div class="pill rw" style="--i:1">Core Technology</div>
+        <div class="pill rw" style="--i:2">Journey</div>
+      </div>
+      <div class="bento-grid">
+        <div class="bento-card zoom-loop bd1">
+          <img src="assets/bento-daunnet.jpg" alt="Daunnet Films Channel" onerror="this.classList.add('broken')">
+          <div class="ph"><i class="ph ph-youtube-logo"></i></div>
+          <div class="overlay"></div>
+          <div class="content">
+            <div class="num">726K</div>
+            <div class="title">Daunnet Films Channel</div>
+            <div class="desc">YouTube — Videography &amp; Editing</div>
+          </div>
+        </div>
+        <div class="bento-card c-2 zoom-loop bd2">
+          <img src="assets/bento-neuron.jpg" alt="Neuron" onerror="this.classList.add('broken')">
+          <div class="ph"><i class="ph ph-heartbeat"></i></div>
+          <div class="overlay"></div>
+          <div class="content">
+            <div class="num">1.2M</div>
+            <div class="title">Neuron</div>
+            <div class="desc">Health &amp; Genetics — data-driven health insights</div>
+          </div>
+        </div>
+        <div class="bento-card zoom-loop bd3">
+          <video src="assets/bento-tvc.mp4" poster="assets/bento-tvc-poster.jpg" autoplay muted loop playsinline></video>
+          <div class="overlay"></div>
+          <div class="content">
+            <div class="num">100+ TVC</div>
+            <div class="title">Daunnet Films</div>
+            <div class="desc">Production House</div>
+          </div>
+        </div>
+        <div class="bento-card c-tall zoom-loop bd4">
+          <video src="assets/bento-profile.mp4" autoplay muted loop playsinline></video>
+          <div class="overlay"></div>
+          <div class="content">
+            <div class="title" style="font-size:14px; text-transform:uppercase; letter-spacing:.12em; color:var(--accent);">Profile</div>
+            <div class="title" style="margin-top:8px;">Startup Incubation &amp; Funding Lead of AIGN</div>
+            <div class="desc">by Artha Graha Network</div>
+          </div>
+        </div>
+        <div class="bento-card zoom-loop bd5">
+          <img src="assets/bento-hipotesa.jpg" alt="Hipotesa" onerror="this.classList.add('broken')">
+          <div class="ph"><i class="ph ph-chats-circle"></i></div>
+          <div class="overlay"></div>
+          <div class="content">
+            <div class="num">450K</div>
+            <div class="title">Hipotesa</div>
+            <div class="desc">Politics &amp; Social</div>
+          </div>
+        </div>
+        <div class="bento-card c-2 zoom-loop bd6">
+          <img src="assets/bento-clients.jpg" alt="Conextlab.ai" onerror="this.classList.add('broken')">
+          <div class="ph"><i class="ph ph-buildings"></i></div>
+          <div class="overlay"></div>
+          <div class="content">
+            <div class="num">100+</div>
+            <div class="title">Clients — Conextlab.ai</div>
+            <div class="desc">AI for Company Consulting</div>
+          </div>
+        </div>
+        <div class="bento-card zoom-loop bd7">
+          <img src="assets/bento-pekerja.jpg" alt="Pekerja.ai" onerror="this.classList.add('broken')">
+          <div class="ph"><i class="ph ph-users-three"></i></div>
+          <div class="overlay"></div>
+          <div class="content">
+            <div class="num">1000+</div>
+            <div class="title">Integrator — Pekerja.ai</div>
+            <div class="desc">Community</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4 — VISUAL ONLY -->
+    <section class="slide" data-slide="4">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <div style="flex:1; position:relative; display:grid; grid-template-columns:1.2fr 1fr 1fr; grid-template-rows:1fr 1fr; gap:22px;">
+        <div class="img-slot interactive kenburns" style="grid-row:1/3; --i:0">
+          <img src="assets/gallery-01.png" alt="" onerror="this.classList.add('broken')">
+          <div class="ph"><i class="ph ph-image"></i><span>assets/gallery-01.png</span></div>
+        </div>
+        <div class="img-slot interactive kenburns" style="grid-row:1/3; --i:1">
+          <img src="assets/gallery-02.png" alt="" onerror="this.classList.add('broken')">
+          <div class="ph"><i class="ph ph-image"></i><span>assets/gallery-02.png</span></div>
+        </div>
+        <div class="img-slot interactive kenburns" style="--i:2">
+          <img src="assets/gallery-03.png" alt="" onerror="this.classList.add('broken')">
+          <div class="ph"><i class="ph ph-image"></i><span>assets/gallery-03.png</span></div>
+        </div>
+        <div class="img-slot interactive kenburns" style="--i:3">
+          <img src="assets/gallery-04.png" alt="" onerror="this.classList.add('broken')">
+          <div class="ph"><i class="ph ph-image"></i><span>assets/gallery-04.png</span></div>
+        </div>
+        <div class="tools-badge" style="top:50%; left:37.5%; right:auto; transform:translate(-50%,-50%); z-index:40;">
+          <svg viewBox="0 0 200 200">
+            <defs><path id="toolsCirclePath2" d="M 100,100 m -76,0 a 76,76 0 1,1 152,0 a 76,76 0 1,1 -152,0"/></defs>
+            <text font-size="14" font-weight="800">
+              <textPath href="#toolsCirclePath2" xlink:href="#toolsCirclePath2" startOffset="0%" textLength="477" lengthAdjust="spacingAndGlyphs">TOOLS • MINDSET • GROWTH • TOOLS • MINDSET • GROWTH • </textPath>
+            </text>
+          </svg>
+          <i class="ph-fill ph-sparkle"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5 — EXAMPLES -->
+    <section class="slide" data-slide="5">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <h2 style="font-size:52px; max-width:1200px; margin-bottom:26px;">Kapan sebenarnya kamu <span class="accent-text">butuh AI?</span></h2>
+      <div style="flex:1; display:flex; gap:26px; min-height:0;">
+        <div class="img-slot zoom-loop" style="flex:0 0 30%;">
+          <img src="assets/slide-5.png" alt="" onerror="this.classList.add('broken')">
+          <div class="ph"><i class="ph ph-image"></i><span>assets/slide-5.png</span></div>
+        </div>
+        <div style="flex:1; display:grid; grid-template-columns:repeat(2,1fr); grid-auto-rows:1fr; gap:20px; min-height:0;">
+          <div class="card ans-card d1" style="padding:26px 28px; display:flex; align-items:center; gap:20px;">
+            <div class="ans-num" style="background:var(--accent-glow); color:var(--accent);">1</div>
+            <p class="ans-text">You have a business idea and want to create a prototype.</p>
+          </div>
+          <div class="card ans-card d2" style="padding:26px 28px; display:flex; align-items:center; gap:20px;">
+            <div class="ans-num" style="background:rgba(91,141,239,.15); color:var(--blue);">2</div>
+            <p class="ans-text">You have a talent for songwriting but are not yet skilled at arranging music.</p>
+          </div>
+          <div class="card ans-card d3" style="padding:26px 28px; display:flex; align-items:center; gap:20px;">
+            <div class="ans-num" style="background:rgba(255,122,69,.15); color:var(--orange);">3</div>
+            <p class="ans-text">You have an idea and concept but want to organize the script more clearly.</p>
+          </div>
+          <div class="card ans-card d4" style="padding:26px 28px; display:flex; align-items:center; gap:20px;">
+            <div class="ans-num" style="background:var(--accent-glow); color:var(--accent);">4</div>
+            <p class="ans-text">You want to learn a new language with AI.</p>
+          </div>
+          <div class="card ans-card d5" style="grid-column:1/3; padding:26px 34px; display:flex; align-items:center; gap:20px; border-color:rgba(68,232,133,.35); background:linear-gradient(to right, var(--accent-glow), var(--card) 40%);">
+            <div class="ans-num" style="background:var(--accent); color:#04140c;">5</div>
+            <p class="ans-text">You want to train and improve yourself with AI.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6 — WHY AGENTIC AI IS A NEW GOLD -->
+    <section class="slide" data-slide="6">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+        <div style="display:flex; gap:60px; align-items:center; margin-bottom:52px;">
+          <div style="flex:1;">
+            <h1 class="rw" style="--i:0; font-size:64px; margin-bottom:14px; line-height:1.12;">Why Agentic AI<br>is a new <span class="accent-text">GOLD</span></h1>
+            <p class="rw" style="--i:1; font-size:20px; font-weight:700; color:var(--text); margin:0;">Kunci utamanya: <span class="accent-text" style="background:var(--accent-glow); padding:2px 10px; border-radius:8px;">OPTIMALISASI dan EFISIENSI</span>.</p>
+          </div>
+          <p class="sub rw" style="--i:2; flex:1; margin:0; font-size:18px;">Agentic AI menjadi new gold karena mampu menciptakan nilai nyata melalui optimalisasi proses kerja dan efisiensi operasional. Dampaknya bukan hanya pekerjaan lebih cepat, tetapi juga biaya lebih rendah dan keputusan bisnis lebih akurat.</p>
+        </div>
+        <div class="stat-row">
+          <div class="stat-tile illustrated pop rw" style="--i:3">
+            <i class="ph-fill ph-clock-countdown bg-ic"></i>
+            <div class="ic"><i class="ph ph-clock-countdown"></i></div>
+            <div class="num">−94%</div><div class="lbl">Waktu Audit HR</div><div class="desc">40 jam → 2,5 jam / bulan</div>
+          </div>
+          <div class="stat-tile illustrated pop rw" style="--i:4">
+            <i class="ph-fill ph-currency-circle-dollar bg-ic"></i>
+            <div class="ic"><i class="ph ph-currency-circle-dollar"></i></div>
+            <div class="num">Rp 30 Jt</div><div class="lbl">Hemat Budget Ads / Bulan</div><div class="desc">Output setara, funnel lebih ketat</div>
+          </div>
+          <div class="stat-tile illustrated pop rw" style="--i:5">
+            <i class="ph-fill ph-chart-line-up bg-ic"></i>
+            <div class="ic"><i class="ph ph-chart-line-up"></i></div>
+            <div class="num">+25%</div><div class="lbl">Revenue dari Keputusan BI</div><div class="desc">Prediktif, bukan tebak-tebakan</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7 — 3 BI WITH AGENTIC AI CASES -->
+    <section class="slide" data-slide="7">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:40px; margin-bottom:26px;">
+        <h2 style="font-size:68px; margin:0;">3 BI with <span class="accent-text">Agentic AI</span> Cases</h2>
+        <p class="sub" style="text-align:right; margin:0; max-width:480px; font-size:18px;">Dari insight menjadi aksi otomatis yang meningkatkan <span class="accent-text">efisiensi</span>, menekan <span class="accent-text">biaya</span>, dan menaikkan <span class="accent-text">revenue</span>.</p>
+      </div>
+
+      <div style="flex:1; display:flex; gap:20px; min-height:0;">
+        <!-- Card 1 -->
+        <div class="card bi-card d1" style="flex:1; padding:26px; display:flex; flex-direction:column;">
+          <div class="card-title" style="color:var(--text);"><i class="ph ph-fork-knife" style="color:var(--accent)"></i>&nbsp; 01 / Restoran × Customer Intelligence</div>
+          <div style="font-size:12px; color:var(--text-faint); font-weight:600; margin-bottom:8px;">Transaksi per jam (peak 19–21)</div>
+          <div style="height:200px; width:100%; position:relative;"><canvas id="chartRestoran"></canvas></div>
+          <div class="card" style="background:var(--card-2); padding:16px 18px; margin-top:14px;">
+            <div style="font-size:13px; font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px;"><i class="ph ph-alarm"></i> Peak Hours</div>
+            <p style="margin:0; font-size:13px; color:var(--text-dim); line-height:1.5;">Puncak ramai jam 19.00–21.00. Staffing &amp; stok diatur ke window ini; jam sepi dipancing promo off-peak.</p>
+          </div>
+          <div class="card" style="background:var(--card-2); padding:16px 18px; margin-top:10px;">
+            <div style="font-size:13px; font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px;"><i class="ph ph-basket"></i> Basket Analysis</div>
+            <p style="margin:0; font-size:13px; color:var(--text-dim); line-height:1.5;">Menu A sering dibeli bareng Menu B → dibuatkan bundling. Average order value naik, food waste turun.</p>
+          </div>
+          <div style="flex:1;"></div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="card bi-card d2" style="flex:1; padding:26px; display:flex; flex-direction:column;">
+          <div class="card-title" style="color:var(--text);"><i class="ph ph-chart-line-up" style="color:var(--accent)"></i>&nbsp; 02 / Ads &amp; Funnel Optimization</div>
+          <div style="font-size:12px; color:var(--text-faint); font-weight:600; margin-bottom:8px;">Budget Iklan untuk Output Closing yang Sama</div>
+          <div style="height:130px; width:100%; position:relative;"><canvas id="chartAdsBudget"></canvas></div>
+          <div style="flex:1; min-height:10px;"></div>
+          <div style="font-size:12px; color:var(--text-faint); font-weight:600; margin:14px 0 8px;">Biaya Akuisisi per Customer (CAC)</div>
+          <div style="height:130px; width:100%; position:relative;"><canvas id="chartAdsCAC"></canvas></div>
+          <div class="legend"><span class="sw"><i style="background:var(--orange)"></i>Manual</span><span class="sw"><i style="background:var(--accent)"></i>Sistem 3-Layer</span></div>
+          <div class="card" style="background:var(--card-2); padding:16px 18px; margin-top:14px;">
+            <p style="margin:0; font-size:13px; color:var(--text-dim); line-height:1.5;"><i class="ph ph-check-circle" style="color:var(--accent)"></i> Budget turun dari <strong style="color:var(--text)">Rp50 jt</strong> ke <strong style="color:var(--text)">Rp20 jt</strong> untuk output setara, dan CAC konsisten lebih rendah.</p>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="card bi-card d3" style="flex:1; padding:26px; display:flex; flex-direction:column;">
+          <div class="card-title" style="color:var(--text);"><i class="ph ph-cloud-rain" style="color:var(--accent)"></i>&nbsp; 03 / Car Wash × Data Cuaca</div>
+          <div style="display:flex; align-items:center; gap:4px; margin-bottom:16px;">
+            <div class="flow-step" style="padding:0 4px;"><div class="ic" style="width:52px;height:52px;font-size:20px;"><i class="ph ph-cloud-rain"></i></div><p style="font-size:11px;">Data Cuaca</p></div>
+            <i class="ph ph-arrow-right" style="color:var(--text-faint); font-size:14px;"></i>
+            <div class="flow-step" style="padding:0 4px;"><div class="ic" style="width:52px;height:52px;font-size:20px;"><i class="ph ph-brain"></i></div><p style="font-size:11px;">BI Engine</p></div>
+            <i class="ph ph-arrow-right" style="color:var(--text-faint); font-size:14px;"></i>
+            <div class="flow-step" style="padding:0 4px;"><div class="ic" style="width:52px;height:52px;font-size:20px;"><i class="ph ph-chart-line"></i></div><p style="font-size:11px;">Prediksi</p></div>
+            <i class="ph ph-arrow-right" style="color:var(--text-faint); font-size:14px;"></i>
+            <div class="flow-step" style="padding:0 4px;"><div class="ic" style="width:52px;height:52px;font-size:20px;"><i class="ph ph-target"></i></div><p style="font-size:11px;">Aksi</p></div>
+          </div>
+          <div style="flex:1; min-height:8px;"></div>
+          <div style="font-size:12px; color:var(--text-faint); font-weight:600; margin-bottom:8px;">Index Demand Cuci Mobil terhadap Hujan Reda</div>
+          <div style="height:180px; width:100%; position:relative;"><canvas id="chartCarWash"></canvas></div>
+          <div class="legend"><span class="sw"><i style="background:var(--accent)"></i>Demand cuci mobil</span><span class="sw"><i style="background:var(--orange)"></i>Kapasitas terjadwal</span></div>
+          <div class="card" style="background:var(--card-2); padding:16px 18px; margin-top:14px;">
+            <p style="margin:0; font-size:13px; color:var(--text-dim); line-height:1.5;">Lonjakan cuci mobil terjadi <strong style="color:var(--text)">2–3 jam</strong> setelah hujan reda. Sistem push promo otomatis &amp; jadwalkan tambahan staf — revenue hari hujan naik <strong style="color:var(--accent)">+20–30%</strong>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-row" style="margin-top:18px;">
+        <div class="stat-tile pop" style="padding:22px 28px;">
+          <div class="ic" style="width:56px;height:56px;font-size:24px;"><i class="ph ph-clock-countdown"></i></div>
+          <div><div class="num" style="font-size:32px;">−94%</div><div class="desc" style="font-size:14.5px;">Waktu Audit HR · 40 jam → 2,5 jam</div></div>
+        </div>
+        <div class="stat-tile pop" style="padding:22px 28px;">
+          <div class="ic" style="width:56px;height:56px;font-size:24px;"><i class="ph ph-currency-circle-dollar"></i></div>
+          <div><div class="num" style="font-size:32px;">Rp 30 Jt</div><div class="desc" style="font-size:14.5px;">Hemat Budget Ads / Bulan</div></div>
+        </div>
+        <div class="stat-tile pop" style="padding:22px 28px;">
+          <div class="ic" style="width:56px;height:56px;font-size:24px;"><i class="ph ph-chart-line-up"></i></div>
+          <div><div class="num" style="font-size:32px;">+25%</div><div class="desc" style="font-size:14.5px;">Revenue dari Keputusan BI</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8 — BUILD SMARTER DEPLOY FASTER -->
+    <section class="slide" data-slide="8">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:22px;">
+        <h1 style="font-size:68px; margin:0;">Build Smarter.<br><span class="accent-text">Deploy Faster.</span></h1>
+        <p class="sub" style="text-align:right; margin:0; max-width:520px; font-size:18px;">Build a powerful web with <strong style="color:var(--text)">N8N</strong> or <strong style="color:var(--text)">OpenClaw</strong>, powered by <strong style="color:var(--text)">Ollama</strong> on <strong style="color:var(--text)">NVIDIA GPU</strong>.</p>
+      </div>
+
+      <div class="arch-grid">
+        <!-- 1. Frontend -->
+        <div class="arch-col d1">
+          <div class="arch-icon"><i class="ph ph-browser"></i></div>
+          <h4>1. Frontend (Web)</h4>
+          <p class="arch-desc">Build your web app with React, Next.js, or your favorite stack.</p>
+          <div class="arch-card">
+            <div class="lbl">Web App</div>
+            <div class="mock-browser">
+              <div class="dots"><span></span><span></span><span></span></div>
+              <div class="body">
+                <div class="side"><i style="width:100%"></i><i style="width:66%"></i><i style="width:80%"></i></div>
+                <div class="main">
+                  <div class="chart-area">
+                    <svg viewBox="0 0 100 40" preserveAspectRatio="none" style="width:100%; height:100%; opacity:.6;"><path d="M0 40 L0 30 L20 15 L40 25 L60 5 L80 20 L100 10 L100 40 Z" fill="var(--accent)"/></svg>
+                  </div>
+                  <div class="widgets">
+                    <div class="widget"><div class="b b1" style="height:40%"></div><div class="b b2" style="height:70%"></div><div class="b b3" style="height:55%"></div></div>
+                    <div class="widget"><div class="spin-ring"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="arch-next"><i class="ph ph-arrow-right"></i></div>
+          </div>
+        </div>
+
+        <!-- 2. Workflow -->
+        <div class="arch-col d2">
+          <div class="arch-icon"><i class="ph ph-flow-arrow"></i></div>
+          <h4>2. Workflow</h4>
+          <p class="arch-desc">n8n or OpenClaw for logic, APIs &amp; data flows.</p>
+          <div class="arch-card">
+            <div class="lbl">N8N / OpenClaw</div>
+            <div class="mock-flow">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path class="flow-dash" d="M 22 20 C 40 20, 40 20, 62 20" fill="none" stroke="rgba(68,232,133,.5)" stroke-width="1"/>
+                <path class="flow-dash" d="M 68 26 C 68 40, 55 44, 46 56" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="1" style="animation-delay:.3s"/>
+                <path class="flow-dash" d="M 30 26 C 30 40, 40 44, 46 56" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="1" style="animation-delay:.15s"/>
+              </svg>
+              <div class="mock-node n1"><div class="box"><i class="ph ph-lightning"></i></div><span>Webhook</span></div>
+              <div class="mock-node n2"><div class="box" style="animation-delay:.5s"><i class="ph ph-brackets-curly"></i></div><span>Function</span></div>
+              <div class="mock-node n3"><div class="box" style="border:none;"><i class="ph ph-globe" style="color:var(--blue)"></i></div><span>HTTP</span></div>
+              <div class="mock-flow-logos"><span><i style="background:#eb4b4b"></i>n8n</span><span><i style="background:var(--blue)"></i>OpenClaw</span></div>
+            </div>
+            <div class="arch-next"><i class="ph ph-arrow-right"></i></div>
+          </div>
+        </div>
+
+        <!-- 3. AI Backend -->
+        <div class="arch-col d3">
+          <div class="arch-icon"><i class="ph ph-robot"></i></div>
+          <h4>3. AI Backend</h4>
+          <p class="arch-desc">Connect to Ollama for intelligent responses.</p>
+          <div class="arch-card">
+            <div class="lbl">Ollama API</div>
+            <div class="mock-ollama">
+              <span class="rq"><i class="ph ph-arrow-right" style="font-size:11px;"></i> Request</span>
+              <div class="logo"><i class="ph-fill ph-cube"></i></div>
+              <span class="rs">Response <i class="ph ph-arrow-right" style="font-size:11px;"></i></span>
+            </div>
+            <div style="display:flex; justify-content:center; gap:6px; margin-top:8px;">
+              <span class="pill" style="font-size:11.5px; padding:5px 12px;">Llama 3</span><span class="pill" style="font-size:11.5px; padding:5px 12px;">Mistral</span><span class="pill" style="font-size:11.5px; padding:5px 12px;">Phi-3</span>
+            </div>
+            <div class="arch-next"><i class="ph ph-arrow-right"></i></div>
+          </div>
+        </div>
+
+        <!-- 4. Local LLM -->
+        <div class="arch-col d4">
+          <div class="arch-icon"><i class="ph ph-stack"></i></div>
+          <h4>4. Local LLM</h4>
+          <p class="arch-desc">Run Llama 3, Mistral, etc. locally with Ollama.</p>
+          <div class="arch-card">
+            <div class="lbl">Local LLM (Ollama)</div>
+            <div class="mock-term">
+              <div><span style="color:var(--accent)">$</span> ollama run llama3<span class="cur"></span></div>
+              <div style="color:var(--text-faint); margin-top:4px;">&gt;&gt;&gt; <span style="color:var(--accent)">Processing prompt...</span></div>
+              <div class="bar-wrap"><div class="fill"></div></div>
+            </div>
+            <div style="text-align:center; font-size:10.5px; color:var(--text-faint); margin-top:10px;">Models stored locally</div>
+            <div class="arch-next"><i class="ph ph-arrow-right"></i></div>
+          </div>
+        </div>
+
+        <!-- 5. NVIDIA GPU -->
+        <div class="arch-col d5">
+          <div class="arch-icon"><i class="ph ph-graphics-card"></i></div>
+          <h4>5. NVIDIA GPU</h4>
+          <p class="arch-desc">Supercharge inference performance.</p>
+          <div class="arch-card">
+            <div class="lbl">NVIDIA GPU</div>
+            <div class="mock-gpu">
+              <img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA" style="height:16px; width:auto;">
+              <div class="fan"><div class="ring"></div><div class="dot"></div></div>
+            </div>
+            <div class="arch-check">
+              <span><i class="ph ph-check" style="color:var(--accent)"></i> Faster Inference</span>
+              <span><i class="ph ph-check" style="color:var(--accent)"></i> Higher Throughput</span>
+              <span><i class="ph ph-check" style="color:var(--accent)"></i> Lower Latency</span>
+              <span><i class="ph ph-check" style="color:var(--accent)"></i> Full GPU Acceleration</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arch-pill-bar">
+        <span class="chip">Your Web App</span><i class="ph ph-arrow-right"></i>
+        <span class="chip">Smart Automation</span><i class="ph ph-arrow-right"></i>
+        <span class="chip">AI-Powered</span><i class="ph ph-arrow-right"></i>
+        <span class="chip">Private &amp; Local</span><i class="ph ph-arrow-right"></i>
+        <span class="chip accent-text">Blazing Fast</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 9 — DEMO TIME -->
+    <section class="slide" data-slide="9">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <h1 style="font-size:68px; margin-bottom:30px;">Demo <span class="accent-text">time!</span></h1>
+
+      <div style="flex:1; display:flex; gap:22px; min-height:0;">
+        <!-- Col 1: Data Analysis -->
+        <div class="demo-card">
+          <h3>Local AI<br>Automation &amp;<br>Data Analysis</h3>
+          <div class="demo-mock">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path class="flow-dash" d="M 26 50 C 30 50, 30 20, 34 20" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="0.6"/>
+              <path class="flow-dash" d="M 26 50 C 30 50, 30 40, 34 40" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="0.6" style="animation-delay:.2s"/>
+              <path class="flow-dash" d="M 26 50 C 30 50, 30 60, 34 60" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="0.6" style="animation-delay:.4s"/>
+              <path class="flow-dash" d="M 26 50 C 30 50, 30 80, 34 80" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="0.6" style="animation-delay:.6s"/>
+              <path class="flow-dash" d="M 56 20 C 65 20, 65 50, 74 50" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="0.6" style="animation-delay:.1s"/>
+              <path class="flow-dash" d="M 56 40 C 65 40, 65 50, 74 50" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="0.6" style="animation-delay:.3s"/>
+              <path class="flow-dash" d="M 56 60 C 65 60, 65 50, 74 50" fill="none" stroke="rgba(68,232,133,.5)" stroke-width="0.6" style="animation-delay:.5s"/>
+              <path class="flow-dash" d="M 56 80 C 65 80, 65 50, 74 50" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="0.6" style="animation-delay:.7s"/>
+            </svg>
+            <div class="demo-node pulse" style="top:50%; left:6%; transform:translateY(-50%); width:20%;">
+              <div class="t"><i class="ph ph-database"></i> Data Source</div>
+              <div class="d">datasets.csv</div>
+            </div>
+            <div class="demo-node pulse" style="top:20%; left:34%; transform:translateY(-50%); width:22%; animation-delay:.2s;">
+              <div class="t">Data Cleaning</div>
+            </div>
+            <div class="demo-node pulse" style="top:40%; left:34%; transform:translateY(-50%); width:22%; animation-delay:.4s;">
+              <div class="t">Feature Engineering</div>
+            </div>
+            <div class="demo-node hl" style="top:60%; left:34%; transform:translateY(-50%); width:22%;">
+              <div class="t"><i class="ph-fill ph-circle" style="font-size:7px;"></i> Model Training</div>
+            </div>
+            <div class="demo-node pulse" style="top:80%; left:34%; transform:translateY(-50%); width:22%; animation-delay:.6s;">
+              <div class="t">Data Visualization</div>
+            </div>
+            <div class="demo-node hl" style="top:50%; left:76%; transform:translateY(-50%); width:20%;">
+              <div class="t"><i class="ph ph-chart-bar"></i> Results</div>
+              <div class="d">analysis complete</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 2: Media Generation -->
+        <div class="demo-card">
+          <h3>Local AI Media<br>Generation</h3>
+          <div class="demo-mock">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path class="flow-dash" d="M 30 18 C 38 18, 38 18, 45 18" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="0.6"/>
+              <path class="flow-dash" d="M 17 25 C 17 38, 17 42, 17 50" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="0.6" style="animation-delay:.15s"/>
+              <path class="flow-dash" d="M 30 50 C 38 50, 38 50, 45 50" fill="none" stroke="rgba(68,232,133,.5)" stroke-width="0.6" style="animation-delay:.3s"/>
+              <path class="flow-dash" d="M 17 58 C 17 70, 17 76, 17 84" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="0.6" style="animation-delay:.45s"/>
+              <path class="flow-dash" d="M 30 84 C 38 84, 38 84, 45 84" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="0.6" style="animation-delay:.6s"/>
+              <path class="flow-dash" d="M 61 18 C 68 18, 68 22, 73 25" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="0.6" style="animation-delay:.75s"/>
+              <path class="flow-dash" d="M 61 50 C 68 50, 68 32, 73 27" fill="none" stroke="var(--orange)" stroke-width="0.6" style="animation-delay:.9s"/>
+              <path class="flow-dash" d="M 61 84 C 68 84, 68 74, 73 70" fill="none" stroke="rgba(68,232,133,.5)" stroke-width="0.6" style="animation-delay:1.05s"/>
+            </svg>
+            <div class="demo-node" style="top:18%; left:4%; width:26%; transform:translateY(-50%);">
+              <div class="t">Prompt</div>
+              <div class="d">Tropical beach, sunset, palm trees, cinematic</div>
+            </div>
+            <div class="demo-node pulse" style="top:50%; left:4%; width:26%; transform:translateY(-50%); animation-delay:.2s;">
+              <div class="t">Preprocessing</div>
+            </div>
+            <div class="demo-node" style="top:84%; left:4%; width:26%; transform:translateY(-50%);">
+              <div class="t">Image</div>
+              <div style="height:22px; margin-top:4px; border-radius:5px; background:linear-gradient(135deg,var(--orange),#6b2a8f); opacity:.85;"></div>
+            </div>
+            <div class="demo-node" style="top:18%; left:44%; width:17%; transform:translateY(-50%);"><div class="t">Text Encode</div></div>
+            <div class="demo-node hl" style="top:50%; left:44%; width:17%; transform:translateY(-50%);"><div class="t"><i class="ph-fill ph-circle" style="font-size:7px;"></i> Conditioning</div></div>
+            <div class="demo-node" style="top:84%; left:44%; width:17%; transform:translateY(-50%);"><div class="t">VAE Decode</div></div>
+            <div class="demo-node hl" style="top:26%; left:73%; width:23%; transform:translateY(-50%);">
+              <div class="t">Sampler</div>
+              <div class="d">steps 30 · cfg 7.5</div>
+            </div>
+            <div class="demo-node" style="top:70%; left:73%; width:23%; transform:translateY(-50%); padding:6px;">
+              <div class="t" style="margin-bottom:4px;">Preview</div>
+              <div class="demo-scan" style="height:26px; background:linear-gradient(135deg,#ff9a45,#c0392b,#3a1655);"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 3: Local Agentic AI -->
+        <div class="demo-card">
+          <h3>Local Agentic AI</h3>
+          <div class="demo-term-wrap">
+            <div class="demo-term-side">
+              <div style="font-size:10px; color:var(--accent); opacity:.7; display:flex; justify-content:space-between;"><span>Terminal</span><span style="color:var(--text-faint);">×</span></div>
+              <div style="font-size:12px; color:var(--text); display:flex; gap:6px;"><span style="color:var(--accent);">$</span> openclaw run</div>
+              <div class="line-dim" style="animation-delay:1s;">Starting OpenClaw...</div>
+              <div class="line-dim" style="animation-delay:1.5s;">Initializing modules...</div>
+              <div class="line-dim" style="animation-delay:2s;">Loading configuration...</div>
+              <div class="line-dim" style="animation-delay:2.5s; color:var(--text);">OpenClaw is running <span style="color:var(--accent);">✓</span></div>
+              <div class="line-dim" style="animation-delay:3s; color:var(--text); display:flex; gap:6px;"><span style="color:var(--accent);">&gt;&gt;&gt;</span> Awaiting task<span class="mock-term-cur" style="display:inline-block; width:6px; height:12px; background:var(--accent); animation:pulse 1s step-end infinite; margin-left:2px;"></span></div>
+            </div>
+            <div class="demo-logo-side">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                <div class="demo-logo-badge"><i class="ph ph-flow-arrow" style="font-size:26px; color:var(--accent);"></i></div>
+                <span style="font-size:11px; font-weight:800; letter-spacing:.18em; text-transform:uppercase; color:var(--text);">openclaw</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10 — LOCAL AI AUTOMATION & DATA ANALYSIS (photo) -->
+    <section class="slide" data-slide="10">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <div class="full-bleed">
+        <img src="assets/slide-10.jpg" alt="Local AI Automation & Data Analysis" onerror="this.style.display='none'">
+        <div class="fade-top"></div>
+      </div>
+      <div class="full-bleed-caption">
+        <h2 class="rw" style="--i:0">Local AI Automation &amp; <span class="accent-text">Data Analysis</span></h2>
+      </div>
+    </section>
+
+    <!-- SLIDE 11 — LOCAL AI MEDIA GENERATION (photo) -->
+    <section class="slide" data-slide="11">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <div class="full-bleed">
+        <img src="assets/slide-11.jpg" alt="Local AI Media Generation" onerror="this.style.display='none'">
+        <div class="fade-top"></div>
+      </div>
+      <div class="full-bleed-caption">
+        <h2 class="rw" style="--i:0">Local AI Media <span class="accent-text">Generation</span></h2>
+      </div>
+    </section>
+
+    <!-- SLIDE 12 — FULL PHOTO + FLOATING PHOTO -->
+    <section class="slide" data-slide="12">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <div class="full-bleed">
+        <img src="assets/slide-12.jpg" alt="" onerror="this.style.display='none'">
+        <div class="fade-top"></div>
+      </div>
+      <div class="full-bleed-caption" style="left:450px;">
+        <h2 class="rw" style="--i:0">Agentic <span class="accent-text">AI</span></h2>
+      </div>
+      <div class="floating-photo">
+        <img src="assets/slide-12-floating.png" alt="" onerror="this.parentElement.style.display='none'">
+      </div>
+    </section>
+
+    <!-- SLIDE 13 — AGENTIC AI (3 phone-frame photos) -->
+    <section class="slide" data-slide="13">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <h1 style="text-align:center; font-size:68px; margin-bottom:36px;">Agentic <span class="accent-text">AI</span></h1>
+      <div class="phone-stack">
+        <div class="phone-frame">
+          <div class="screen"><img src="assets/slide-13-a.jpg" alt="" onerror="this.parentElement.style.background='#0a0a08'"></div>
+        </div>
+        <div class="phone-frame">
+          <div class="screen"><img src="assets/slide-13-b.jpg" alt="" onerror="this.parentElement.style.background='#0a0a08'"></div>
+        </div>
+        <div class="phone-frame">
+          <div class="screen"><img src="assets/slide-13-c.jpg" alt="" onerror="this.parentElement.style.background='#0a0a08'"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 14 — IG CTA -->
+    <section class="slide" data-slide="14">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <div style="flex:1; display:flex; gap:44px; align-items:center; min-height:0;">
+        <div style="flex:1; display:flex; flex-direction:row; gap:22px; justify-content:center; height:100%;">
+          <div style="flex:1; min-height:0; position:relative; display:flex; align-items:center; justify-content:center; border-radius:20px; overflow:hidden;">
+            <img src="assets/slide-14-a.jpg" alt="" onerror="this.parentElement.style.background='#0a0a08'" style="max-width:100%; max-height:100%; height:auto; width:auto;">
+          </div>
+          <div style="flex:1; min-height:0; position:relative; display:flex; align-items:center; justify-content:center; border-radius:20px; overflow:hidden;">
+            <img src="assets/slide-14-b.jpg" alt="" onerror="this.parentElement.style.background='#0a0a08'" style="max-width:100%; max-height:100%; height:auto; width:auto;">
+            <div class="ig-free-badge">Free 100% Khusus peserta ITEBA</div>
+          </div>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:26px;">
+          <div class="eyebrow rw" style="--i:0">Let's Connect</div>
+          <h2 class="rw" style="--i:1; font-size:56px; margin:0; line-height:1.12;">Follow the journey<br><span class="accent-text">@anjas_maradita</span></h2>
+          <p class="sub rw" style="--i:2; font-size:19px; max-width:520px;">Komen pakai kata <span class="kw" style="padding:5px 14px; border-radius:999px; background:var(--accent-glow); color:var(--accent); font-weight:800;">"GAS"</span> atau <span class="kw" style="padding:5px 14px; border-radius:999px; background:var(--accent-glow); color:var(--accent); font-weight:800;">"MENYALA"</span> untuk connect langsung dengan Anjas.</p>
+          <div class="ig-cta rw" style="--i:3">
+            <i class="ph-fill ph-instagram-logo"></i>
+            <span class="tag">@anjas_maradita</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 15 — QUOTE -->
+    <section class="slide" data-slide="15">
+      <div class="quote-bg">
+        <video src="assets/slide-15.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <div class="quote-slide">
+        <blockquote class="rw" style="--i:0">The best time to plant a tree was 20 years ago. The second best time is now.</blockquote>
+      </div>
+    </section>
+
+    <!-- SLIDE 16 — THANK YOU -->
+    <section class="slide" data-slide="16">
+      <div class="brandtag"><span class="dot"></span> Anjas Maradita</div>
+      <div class="nvidia-logo"><img src="assets/NVIDIA_logo_white.svg" alt="NVIDIA"></div>
+      <div class="thankyou-slide">
+        <h1 class="cover-h1"><span class="rw" style="--i:0">Thank</span> <span class="rw accent-text" style="--i:1">You!</span></h1>
+        <p class="sub rw" style="--i:2; font-size:20px;">Anjas Maradita — Founder, Conextlab.ai</p>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div id="nav">
+  <button id="prevBtn" aria-label="Previous slide"><i class="ph ph-arrow-left"></i></button>
+  <div id="dots"></div>
+  <div id="counter"><span class="cur">01</span> / 16</div>
+  <button id="nextBtn" aria-label="Next slide"><i class="ph ph-arrow-right"></i></button>
+</div>
+
+<script>
+  const stage = document.getElementById('stage');
+  function resizeStage(){
+    const sx = window.innerWidth / 1920;
+    const sy = window.innerHeight / 1080;
+    const s = Math.min(sx, sy) * 0.965;
+    stage.style.transform = `translate(-50%, -50%) scale(${s})`;
+    stage.style.top = '50%';
+    stage.style.left = '50%';
+  }
+  window.addEventListener('resize', resizeStage);
+  resizeStage();
+
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const dotsWrap = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+  let current = 0;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'd' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(d);
+  });
+  const dots = Array.from(dotsWrap.children);
+
+  function pad(n){ return n < 10 ? '0'+n : ''+n; }
+  counter.innerHTML = '<span class="cur">' + pad(1) + '</span> / ' + pad(slides.length);
+
+  function restartAnimations(slideEl){
+    const els = slideEl.querySelectorAll('.rw, .fan-card, .sticker-tag, .img-slot.interactive, .bi-card, .bento-card, .arch-col, .line-dim, .floating-photo, .ans-card');
+    els.forEach(el => {
+      el.style.animation = 'none';
+      void el.offsetHeight; // force reflow to restart keyframes
+      el.style.animation = '';
+    });
+  }
+
+  function goTo(i){
+    if(i < 0 || i >= slides.length) return;
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = i;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+    counter.innerHTML = '<span class="cur">' + pad(current+1) + '</span> / ' + pad(slides.length);
+    restartAnimations(slides[current]);
+  }
+
+  // parallax-zoom hover for interactive gallery photos
+  document.querySelectorAll('.img-slot.interactive').forEach(el => {
+    const img = el.querySelector('img');
+    el.addEventListener('mousemove', e => {
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      img.style.transform = `scale(1.15) translate(${x * -22}px, ${y * -22}px)`;
+    });
+    el.addEventListener('mouseleave', () => { img.style.transform = ''; });
+  });
+
+  document.querySelectorAll('.zoom-loop').forEach(el => {
+    const media = el.querySelector('img, video');
+    if (!media) return;
+    el.addEventListener('mousemove', e => {
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      media.style.transform = `scale(1.1) translate(${x * -14}px, ${y * -14}px)`;
+    });
+    el.addEventListener('mouseleave', () => { media.style.transform = ''; });
+  });
+
+  document.getElementById('prevBtn').addEventListener('click', () => goTo(current-1));
+  document.getElementById('nextBtn').addEventListener('click', () => goTo(current+1));
+
+  window.addEventListener('keydown', (e) => {
+    if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){ e.preventDefault(); goTo(current+1); }
+    if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){ e.preventDefault(); goTo(current-1); }
+  });
+
+  // swipe support
+  let touchStartX = 0;
+  window.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+  window.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if(Math.abs(dx) > 60){ dx < 0 ? goTo(current+1) : goTo(current-1); }
+  });
+
+  // ---- Slide 7 charts (Chart.js, from client's reference HTML) ----
+  Chart.defaults.color = 'rgba(245,246,240,.45)';
+  Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+  Chart.defaults.font.size = 11;
+  Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(5,20,10,.92)';
+  Chart.defaults.plugins.tooltip.titleColor = '#44E885';
+  Chart.defaults.plugins.tooltip.bodyColor = '#fff';
+  Chart.defaults.plugins.tooltip.borderColor = 'rgba(68,232,133,.35)';
+  Chart.defaults.plugins.tooltip.borderWidth = 1;
+  Chart.defaults.plugins.tooltip.padding = 10;
+  Chart.defaults.plugins.tooltip.displayColors = false;
+
+  const biGrid = { color:'rgba(255,255,255,.06)', drawBorder:false };
+
+  const chartRestoran = new Chart(document.getElementById('chartRestoran'), {
+    type:'bar',
+    data:{
+      labels:['11','13','15','17','19','21','23'],
+      datasets:[{
+        data:[40,52,30,45,95,85,40],
+        backgroundColor:['rgba(255,255,255,.08)','#5B8DEF','rgba(255,255,255,.08)','rgba(255,255,255,.08)','#44E885','#44E885','rgba(255,255,255,.08)'],
+        borderRadius:4, barPercentage:0.6
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        y:{ beginAtZero:true, max:100, grid:biGrid, border:{display:false} },
+        x:{ grid:{display:false}, border:{display:false} }
+      }
+    }
+  });
+  let peakGlow = true;
+  setInterval(() => {
+    peakGlow = !peakGlow;
+    chartRestoran.data.datasets[0].backgroundColor[4] = peakGlow ? '#44E885' : 'rgba(68,232,133,.35)';
+    chartRestoran.data.datasets[0].backgroundColor[5] = peakGlow ? '#44E885' : 'rgba(68,232,133,.35)';
+    chartRestoran.update('none');
+  }, 800);
+
+  new Chart(document.getElementById('chartAdsBudget'), {
+    type:'bar',
+    data:{
+      labels:['Manual','Sistem 3-Layer'],
+      datasets:[{ data:[50,20], backgroundColor:['#FF7A45','#44E885'], borderRadius:4, barPercentage:0.5 }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        y:{ beginAtZero:true, max:60, grid:biGrid, border:{display:false} },
+        x:{ grid:{display:false}, border:{display:false} }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('chartAdsCAC'), {
+    type:'line',
+    data:{
+      labels:['Bln 1','Bln 2','Bln 3','Bln 4','Bln 5','Bln 6'],
+      datasets:[
+        { label:'Manual', data:[580,560,580,550,560,570], borderColor:'#FF7A45', borderWidth:2, pointBackgroundColor:'#FF7A45', pointRadius:3, tension:.3 },
+        { label:'Sistem 3-Layer', data:[320,290,250,230,210,190], borderColor:'#44E885', borderWidth:2, pointBackgroundColor:'#44E885', pointRadius:3, tension:.3 }
+      ]
+    },
+    options:{
+      animations:{ radius:{ duration:1000, from:3, to:6, loop:true, easing:'easeInOutSine' } },
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false }, tooltip:{ displayColors:true } },
+      scales:{
+        y:{ beginAtZero:false, min:150, max:650, grid:biGrid, border:{display:false} },
+        x:{ grid:{display:false}, border:{display:false} }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('chartCarWash'), {
+    type:'line',
+    data:{
+      labels:['Hujan','Reda','+1j','+2j','+3j','+4j','+5j','+6j'],
+      datasets:[
+        { label:'Demand', data:[2,5,18,45,80,95,70,50,30], borderColor:'#44E885', backgroundColor:'rgba(68,232,133,.12)', borderWidth:2, pointBackgroundColor:'#05140a', pointBorderColor:'#44E885', pointBorderWidth:2, pointRadius:4, pointHoverRadius:6, fill:true, tension:.4 },
+        { label:'Kapasitas', data:[45,45,45,45,45,45,45,45,45], borderColor:'#FF7A45', borderWidth:1.5, borderDash:[5,5], pointRadius:0, fill:false, tension:0 }
+      ]
+    },
+    options:{
+      animations:{ radius:{ duration:1000, from:3, to:7, loop:true, easing:'easeInOutSine' } },
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false }, tooltip:{ displayColors:true } },
+      scales:{
+        y:{ beginAtZero:true, max:100, grid:biGrid, border:{display:false} },
+        x:{ grid:{display:false}, border:{display:false} }
+      },
+      interaction:{ mode:'index', intersect:false }
+    }
+  });
+</script>
+
+</body>
+</html>
